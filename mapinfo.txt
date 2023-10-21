@@ -1,0 +1,6 @@
+Each note is notated as a "Hit Object" in the sounds file, with syntax x,y,time,type,hitSound,objectParams,hitSample.
+x is the lane the note is in. For 4 keys, these lanes are 64, 192, 320, and 448 which correspond to 1, 2, 3, and 4 respectively.
+y is always 192, I don't think this matters
+Type denotes if it is a normal note or a long note, using bit flags. Type 1 is normal and type 128 is a long note.
+Hitsound determines the sound made when hit, using bit flags.
+objectParams is the end timing for a long note.
