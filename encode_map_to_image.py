@@ -38,9 +38,11 @@ def encode_map_to_image(filename, timestep, start_time):
                 #remove everything after the colon
                 end_time = end_time.split(":")[0]
                 end_time = int(end_time)
+            else:
+                end_time = -1
             print(line_components)
             #Make sure the hitobject is in the correct time range
-            if time >= start_time and time < start_time + timestep:
+            if (time >= start_time and time < start_time + timestep):
                 #Set the pixel at the time and column to the type of the hitobject
                 #Check the type of the hitobject
                 #1 is a normal note
@@ -49,6 +51,12 @@ def encode_map_to_image(filename, timestep, start_time):
                     img[time - start_time][column] = 128
                 if type & 128 == 128:
                     img[time - start_time:end_time - start_time][column] = 255
+            #if the note has an endtime that is in the correct time range, but the start time is not add the tail end of the hold note
+            elif (end_time >= start_time and end_time < start_time + timestep):
+                img[0:end_time - start_time][column] = 255
+            #if there is a hold note that starts before the time range and ends after the time range, add the entire hold note
+            elif (time < start_time and end_time >= start_time + timestep):
+                img[:,column] = 255
             if  time >= start_time + timestep:
                 break
     return img

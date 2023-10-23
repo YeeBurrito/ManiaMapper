@@ -44,6 +44,15 @@ def get_beatmapset(api, mapset_id):
     #         os.remove(os.path.join("./Beatmaps/", filename.replace(".zip", ""), file))
     return filename
 
+def get_beatmap_difficulty(api, map_id):
+    try :
+        beatmap = api.beatmap_attributes(map_id)
+    except:
+        return None
+    #returns beatmap as Ossapi object
+    #get the star_rating attribute to get the star rating of the beatmap
+    return beatmap.attributes.star_rating
+
 def main():
     api = get_client()
 
