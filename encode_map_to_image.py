@@ -15,6 +15,8 @@ def encode_map_to_image(filename, timestep, start_time):
             if line.startswith("AudioLeadIn:"):
                 audio_lead_in = int(line.split("AudioLeadIn:")[1].strip())
                 break
+            else:
+                audio_lead_in = 0
         for line in lines:
             #Find the [HitObjects] section
             if line.startswith("[HitObjects]"):
@@ -26,6 +28,8 @@ def encode_map_to_image(filename, timestep, start_time):
             line_components = line.split(",")
             #Get the time of the hitobject
             time = int(line_components[2])
+            #if there is an audio lead in, offset the time by the audio lead in
+            time += audio_lead_in
             #Get the type of the hitobject
             type = int(line_components[3])
             #Get the column of the hitobject
@@ -38,9 +42,11 @@ def encode_map_to_image(filename, timestep, start_time):
                 #remove everything after the colon
                 end_time = end_time.split(":")[0]
                 end_time = int(end_time)
+                #if there is an audio lead in, offset the time by the audio lead in
+                end_time += audio_lead_in
             else:
                 end_time = -1
-            print(line_components)
+            # print(line_components)
             #Make sure the hitobject is in the correct time range
             if (time >= start_time and time < start_time + timestep):
                 #Set the pixel at the time and column to the type of the hitobject
