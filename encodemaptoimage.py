@@ -11,25 +11,19 @@ def encode_map_to_image(filename, timestep, start_time):
     with open(filename, "r") as f:
         lines = f.readlines()
         for line in lines:
-            #AudioLeadIn is the milliseconds of silence added by the game before the song starts
-            if line.startswith("AudioLeadIn:"):
-                audio_lead_in = int(line.split("AudioLeadIn:")[1].strip())
-                break
-            else:
-                audio_lead_in = 0
-        for line in lines:
             #Find the [HitObjects] section
             if line.startswith("[HitObjects]"):
                 break
         lines = lines[lines.index(line) + 1:]
         #Go through each line in the [HitObjects] section
         for line in lines:
+            #make sure the line is a hitobject
+            if line.startswith("\n"):
+                break
             #Split the line into its components
             line_components = line.split(",")
             #Get the time of the hitobject
             time = int(line_components[2])
-            #if there is an audio lead in, offset the time by the audio lead in
-            time += audio_lead_in
             #Get the type of the hitobject
             type = int(line_components[3])
             #Get the column of the hitobject
@@ -42,8 +36,6 @@ def encode_map_to_image(filename, timestep, start_time):
                 #remove everything after the colon
                 end_time = end_time.split(":")[0]
                 end_time = int(end_time)
-                #if there is an audio lead in, offset the time by the audio lead in
-                end_time += audio_lead_in
             else:
                 end_time = -1
             # print(line_components)
@@ -56,10 +48,10 @@ def encode_map_to_image(filename, timestep, start_time):
                 if type & 1 == 1:
                     img[time - start_time][column] = 128
                 if type & 128 == 128:
-                    img[time - start_time:end_time - start_time][column] = 255
+                    img[time - start_time:end_time - start_time, column] = 255
             #if the note has an endtime that is in the correct time range, but the start time is not add the tail end of the hold note
             elif (end_time >= start_time and end_time < start_time + timestep):
-                img[0:end_time - start_time][column] = 255
+                img[0:end_time - start_time, column] = 255
             #if there is a hold note that starts before the time range and ends after the time range, add the entire hold note
             elif (time < start_time and end_time >= start_time + timestep):
                 img[:,column] = 255
