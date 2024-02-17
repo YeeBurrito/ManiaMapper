@@ -6,7 +6,7 @@ import encodemaptoimage as emi
 #Globals
 window_size = (1500, 900)
 bottom_line_y = 0.95 * window_size[1]
-note_speed = 1 #time in seconds for a note to travel from the top to the bottom of the screen
+note_speed = 2.5 #time in seconds for a note to travel from the top to the bottom of the screen
 
 class Note:
     def __init__(self, timing, lane, type, length) -> None:
@@ -14,12 +14,12 @@ class Note:
         self.lane = lane
         self.type = type
         self.length = length
-        self.y = -100 #start the note off screen
+        self.y = -700 #start the note off screen
     
     def update(self, dt):
         self.y += note_speed * dt
     
-    def draw(self, screen):
+    def draw(self, screen) -> bool:
         note_color = (255, 255, 255) #white color
         if self.lane in [1, 2]: #if the note is in the middle 2 lanes
             note_color = (128, 128, 255) #blue color
@@ -31,6 +31,7 @@ class Note:
             #if it has, remove it from the list of notes
             if self.y + 50 >= bottom_line_y:
                 return True
+            return False
         else:
             note_height = 50 + (note_speed * self.length)
             #draw the hold note
@@ -38,10 +39,12 @@ class Note:
             if self.y + note_height >= bottom_line_y:
                 pygame.draw.rect(screen, note_color, (((note_width * self.lane) + (window_size[0] // 3)), self.y, note_width, bottom_line_y - self.y))
                 #if the tail end of the hold note has hit the bottom of the screen, remove the note from the list of notes
-                if bottom_line_y - self.y <= 0:
+                if self.y - self.length + 50 >= bottom_line_y:
                     return True
+                return False
             else:
                 pygame.draw.rect(screen, note_color, (((note_width * self.lane) + (window_size[0] // 3)), self.y, note_width, note_height))
+                return False
 
         
 
@@ -50,9 +53,10 @@ def display_game(path):
 
     #get the notes from the map file, loaded as a numpy array
     #for now, just get the first 10 seconds of the song
-    map_image = emi.encode_map_to_image(os.path.join(path, map_file), 10000, 0)
+    map_image = emi.encode_map_to_image(os.path.join(path, map_file), 100000, 0)
 
     notes = generate_notes(map_image)
+    active_notes = []
 
     #initialize pygame and load the song, image, and set the window size
     pygame.init()
@@ -103,17 +107,15 @@ def display_game(path):
 
         dt = clock.tick(60)  # get the elapsed time since the last frame
 
-        #list of active notes
-        active_notes = []
-
         # Spawn notes when their time has come
         while notes and notes[0].timing <= pygame.time.get_ticks():
             print(pygame.time.get_ticks())
             print("spawned note at time: ", notes[0].timing, "ms")
             active_notes.append(notes.popleft())
-        
+
         # Update and draw notes
         for note in active_notes:
+            note.update(dt)
             if note.draw(screen):
                 active_notes.remove(note)
         
