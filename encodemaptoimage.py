@@ -15,6 +15,15 @@ def encode_map_to_image(filename, timestep, start_time):
             if line.startswith("[HitObjects]"):
                 break
         lines = lines[lines.index(line) + 1:]
+        #if the start_time is -1, then the start time will be a random time in the map,
+        #from 0ms to the end minus the timestep
+        #So if the map was 60 seconds long and the timestep was 10 seconds, the start time would be between 0 and 50 seconds
+        if start_time == -1:
+            #Find the last note in the map
+            last_note = get_last_note(f)
+            #Set the start time to a random time in the map
+            start_time = np.random.randint(0, last_note - timestep)
+
         #Go through each line in the [HitObjects] section
         for line in lines:
             #make sure the line is a hitobject
@@ -59,8 +68,47 @@ def encode_map_to_image(filename, timestep, start_time):
                 break
     return img
 
+def get_last_note(osu_file):
+    lines = osu_file.readlines()
+    last_note = lines[-3].split(",")[2]
+    last_note = int(last_note)
+    return last_note
+
+def get_all_timesteps(osu_file_path, timestep, start_time):
+    with open(osu_file_path, "r") as f:
+        last_note = get_last_note(f)
+    map_images = []
+    start_times = []
+    difficulties = []
+    #The last map image cannot be longer than the last note
+    for i in range(start_time, last_note - timestep, timestep):
+        map_images.append(encode_map_to_image(osu_file_path, timestep, i))
+        start_times.append(i)
+        difficulties.append(get_map_difficulty(osu_file_path))
+    return map_images, start_times, difficulties
+
+def get_song_file(osu_file_path):
+    with open(osu_file_path, "r") as f:
+        lines = f.readlines()
+    song_index = lines.index('[General]\n')
+    for i in range(song_index + 1, len(lines)):
+        if lines[i].startswith('AudioFilename:'):
+            #remove the AudioFilename: part of the line without splitting the line
+            song_file = lines[i].replace('AudioFilename: ', '').strip()
+            return song_file
+
+def get_map_file(osu_file_path):
+    for file in os.listdir(osu_file_path):
+        if file.endswith(".osu"):
+            return file
+        
+def get_map_difficulty(osu_file_path):
+    with open(osu_file_path, "r") as f:
+        lines = f.readlines()
+    return lines[-1].split(":")[1].strip()
+
 def main():
-    image_test = encode_map_to_image("./Processed_Beatmaps/1924015/Kry.exe feat. Ice - Last Wish ([GB]ReMILia) [Unfulfilled Wish].osu", 30000, 0)
+    image_test = encode_map_to_image("./Processed_Beatmaps/1924015/Kry.exe feat. Ice - Last Wish ([GB]ReMILia) [Unfulfilled Wish].osu", 30000, -1)
     plt.imshow(image_test)
     plt.show()
 

@@ -53,7 +53,7 @@ def display_game(path):
 
     #get the notes from the map file, loaded as a numpy array
     #for now, just get the first 10 seconds of the song
-    map_image = emi.encode_map_to_image(os.path.join(path, map_file), 100000, 0)
+    map_image = emi.encode_map_to_image(os.path.join(path, map_file), 60000, 0)
 
     notes = generate_notes(map_image)
     active_notes = []
@@ -63,9 +63,14 @@ def display_game(path):
     music = pygame.mixer.Sound(os.path.join(path, song_file))
     pygame.mixer.Sound.set_volume(music, 0.2)
     window_size = (1500, 900)
-    background = pygame.image.load(os.path.join(path, image_file))
-    background = pygame.transform.scale(background, window_size)
-    background.set_alpha(80)
+    #make sure the image file exists
+    if os.path.isfile(os.path.join(path, image_file)):
+        background = pygame.image.load(os.path.join(path, image_file))
+        background = pygame.transform.scale(background, window_size)
+        background.set_alpha(80)
+    else:
+        background = pygame.Surface(window_size)
+        background.fill((0, 0, 0))  # fill with black
     pygame.display.set_caption("beatmap visualizer")
     screen = pygame.display.set_mode(window_size)
     screen.blit(background, (0, 0))
@@ -145,7 +150,8 @@ def load_files(path):
     song_index = lines.index('[General]\n')
     for i in range(song_index + 1, len(lines)):
         if lines[i].startswith('AudioFilename:'):
-            song_file = lines[i].split(' ')[1].strip()
+            #remove the AudioFilename: part of the line without splitting the line
+            song_file = lines[i].replace('AudioFilename: ', '').strip()
             print(song_file)
             break
     
@@ -176,7 +182,7 @@ def generate_notes(map_image):
     return notes
 
 def main():
-    path = "./Nexta/"
+    path = "./Processed_Beatmaps/189224/"
     display_game(path)
 
 if __name__ == "__main__":
