@@ -24,15 +24,26 @@ def main():
     dev_path = "./Datasets/Dev"
 
     #load the dataset
-    train_dataset = DatasetLoader.prepare_dataset(train_path, start_ms, random_start, all_timesteps, timestep_ms)
-    dev_dataset = DatasetLoader.prepare_dataset(dev_path, start_ms, random_start, all_timesteps, timestep_ms)
+    train_dataset = DatasetLoader.prepare_dataset(train_path, start_ms, random_start, all_timesteps, timestep_ms, 64)
+    dev_dataset = DatasetLoader.prepare_dataset(dev_path, start_ms, random_start, all_timesteps, timestep_ms, 64)
 
     #create the dataloaders
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    dev_loader = torch.utils.data.DataLoader(dev_dataset, batch_size=batch_size, shuffle=True)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
+    dev_loader = torch.utils.data.DataLoader(dev_dataset, batch_size=batch_size, shuffle=False)
+
+    #print the dataset
+    print(train_dataset[60])
 
     #create the model
-    model = generator_main.ManiaMapperGenerator()
+    generator = generator_main.Generator(length=timestep_ms)
+    discriminator = generator_main.Discriminator(length=timestep_ms)
+    generator = generator.to(device)
+    discriminator = discriminator.to(device)
+
+    #test the model with a single batch
+    for batch in train_loader:
+        print(batch.shape)
+
 
 
 if __name__ == "__main__":

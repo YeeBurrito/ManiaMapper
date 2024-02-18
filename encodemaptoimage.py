@@ -8,8 +8,16 @@ def encode_map_to_image(filename, timestep, start_time):
     #Each column represents a lane in the map
     #The value of each pixel represents the type of hitobject that is present in that lane at that time
     img = np.zeros((timestep, 4), dtype=np.uint8)
-    with open(filename, "r") as f:
-        lines = f.readlines()
+    with open(filename, "r", encoding="utf8") as f:
+        lines = []
+        while True:
+            try:
+                line = next(f)
+                lines.append(line)
+            except UnicodeDecodeError:
+                continue
+            except StopIteration:
+                break
         for line in lines:
             #Find the [HitObjects] section
             if line.startswith("[HitObjects]"):
@@ -75,7 +83,7 @@ def get_last_note(osu_file):
     return last_note
 
 def get_all_timesteps(osu_file_path, timestep, start_time):
-    with open(osu_file_path, "r") as f:
+    with open(osu_file_path, "r", encoding="utf8") as f:
         last_note = get_last_note(f)
     map_images = []
     start_times = []
@@ -88,7 +96,7 @@ def get_all_timesteps(osu_file_path, timestep, start_time):
     return map_images, start_times, difficulties
 
 def get_song_file(osu_file_path):
-    with open(osu_file_path, "r") as f:
+    with open(osu_file_path, "r", encoding="utf8") as f:
         lines = f.readlines()
     song_index = lines.index('[General]\n')
     for i in range(song_index + 1, len(lines)):
@@ -103,7 +111,7 @@ def get_map_file(osu_file_path):
             return file
         
 def get_map_difficulty(osu_file_path):
-    with open(osu_file_path, "r") as f:
+    with open(osu_file_path, "r", encoding="utf8") as f:
         lines = f.readlines()
     return lines[-1].split(":")[1].strip()
 
